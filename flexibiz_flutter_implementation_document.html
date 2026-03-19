@@ -1,0 +1,157 @@
+# FlexiBiz Flutter Implementation Guide
+
+This document outlines the technical architecture, data models, and Firebase integration for the FlexiBiz Manager App.
+
+## 1. Project Structure (Modular Architecture)
+We will follow a feature-first approach to keep the code scalable.
+
+```text
+lib/
+├── core/
+│   ├── theme/          # Onyx & Alabaster Design System implementation
+│   ├── constants/      # App constants, strings, asset paths
+│   └── utils/          # Formatting, validators, helpers
+├── data/
+│   ├── models/         # Client, Appointment, Business models
+│   ├── repositories/   # Abstract repository definitions
+│   └── services/       # Firebase/Firestore implementation
+├── logic/              # State Management (Riverpod/Bloc/Provider)
+├── ui/
+│   ├── common/         # Shared Widgets (Buttons, Inputs, Cards)
+│   ├── screens/        # Dashboard, Clients, Calendar, Settings
+│   └── navigation/     # App Router (GoRouter or simple Navigator)
+└── main.dart           # Entry point
+```
+
+## 2. Data Models (Entities)
+
+### Client Model
+```dart
+class Client {
+  final String id;
+  final String fullName;
+  final String phone;
+  final String notes;
+  final List<String> appointmentIds;
+  final String tier; // e.g., 'Diamond', 'Gold', 'Standard'
+
+  Client({
+    required this.id,
+    required this.fullName,
+    required this.phone,
+    this.notes = '',
+    this.appointmentIds = const [],
+    this.tier = 'Standard',
+  });
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'fullName': fullName,
+    'phone': phone,
+    'notes': notes,
+    'appointmentIds': appointmentIds,
+    'tier': tier,
+  };
+
+  factory Client.fromMap(Map<String, dynamic> map) => Client(
+    id: map['id'],
+    fullName: map['fullName'],
+    phone: map['phone'],
+    notes: map['notes'],
+    appointmentIds: List<String>.from(map['appointmentIds']),
+    tier: map['tier'],
+  );
+}
+```
+
+### Appointment Model
+```dart
+enum AppointmentStatus { scheduled, completed, cancelled }
+
+class Appointment {
+  final String id;
+  final DateTime dateTime;
+  final String serviceType;
+  final String clientId;
+  final AppointmentStatus status;
+
+  Appointment({
+    required this.id,
+    required this.dateTime,
+    required this.serviceType,
+    required this.clientId,
+    this.status = AppointmentStatus.scheduled,
+  });
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'dateTime': dateTime.toIso8601String(),
+    'serviceType': serviceType,
+    'clientId': clientId,
+    'status': status.name,
+  };
+
+  factory Appointment.fromMap(Map<String, dynamic> map) => Appointment(
+    id: map['id'],
+    dateTime: DateTime.parse(map['dateTime']),
+    serviceType: map['serviceType'],
+    clientId: map['clientId'],
+    status: AppointmentStatus.values.byName(map['status']),
+  );
+}
+```
+
+## 3. Firestore Service (Basic Implementation)
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class DatabaseService {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  // Clients
+  Future<void> addClient(Client client) async {
+    await _db.collection('clients').doc(client.id).set(client.toMap());
+  }
+
+  Stream<List<Client>> streamClients() {
+    return _db.collection('clients').snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => Client.fromMap(doc.data())).toList());
+  }
+
+  // Appointments
+  Future<void> createAppointment(Appointment appointment) async {
+    await _db.collection('appointments').doc(appointment.id).set(appointment.toMap());
+  }
+
+  Stream<List<Appointment>> streamAppointments() {
+    return _db.collection('appointments').snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => Appointment.fromMap(doc.data())).toList());
+  }
+}
+```
+
+## 4. Theme Implementation (Onyx & Alabaster)
+We will use `ThemeData` to globally apply the luxury dark mode.
+
+```dart
+class AppTheme {
+  static final darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: Colors.white,
+    scaffoldBackgroundColor: const Color(0xFF131313),
+    fontFamily: 'Manrope',
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, color: Colors.white),
+      bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white70),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      ),
+    ),
+  );
+}
+```

@@ -1,0 +1,66 @@
+# FlexiBiz - Final Release Build Implementation
+
+This document serves as the final, consolidated `main.dart` and release configuration for the FlexiBiz platform. It integrates the global loading state, Riverpod providers, and the primary navigation structure.
+
+## 1. Consolidated `main.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'core/theme/app_theme.dart';
+import 'ui/common/loading_wrapper.dart';
+import 'ui/screens/manager/home_screen.dart'; // Primary entry for Manager App
+// import 'ui/screens/client/client_home_screen.dart'; // Alternative entry for Client App
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Ensure Firebase is ready
+  
+  runApp(
+    const ProviderScope(
+      child: FlexiBizApp(),
+    ),
+  );
+}
+
+class FlexiBizApp extends StatelessWidget {
+  const FlexiBizApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'FlexiBiz',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.darkTheme,
+      // The GlobalLoadingWrapper ensures the Onyx & Alabaster spinner 
+      // is available across all routes.
+      builder: (context, child) => GlobalLoadingWrapper(child: child!),
+      home: const HomeScreen(), // Default to Manager Dashboard
+    );
+  }
+}
+```
+
+## 2. Release Build Commands
+
+To generate the production-ready binaries, run the following commands in your terminal:
+
+### For Android (AAB - Recommended for Play Store):
+```bash
+flutter build appbundle --release --obfuscate --split-debug-info=./debug_info
+```
+
+### For iOS:
+```bash
+flutter build ios --release --no-codesign
+# Then open Runner.xcworkspace in Xcode to archive and upload.
+```
+
+## 3. Pre-Release Audit
+1.  **Firebase Security Rules:** Ensure the rules provided in the `Firestore Security Rules Guide` are deployed.
+2.  **App Icons:** Verify that assets in `assets/icons/` are properly linked in `pubspec.yaml`.
+3.  **Environment:** Check that `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) match your production project.
+4.  **Version:** Update `version` in `pubspec.yaml` (e.g., `1.0.0+1`).
+
+**FlexiBiz is now technically ready for deployment.**

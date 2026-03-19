@@ -1,0 +1,74 @@
+# App Store Connect Setup Guide for FlexiBiz
+
+This guide will walk you through the essential steps to set up your app in App Store Connect, ensuring a smooth submission process for your luxury hair salon platform.
+
+## 1. Prerequisites
+Before you begin, ensure you have:
+*   An active **Apple Developer Program** membership.
+*   Your **Bundle ID** (e.g., `com.yourname.flexibiz`) registered in the Apple Developer Portal.
+*   A finished **Release Build** (IPA file) uploaded via Xcode or Transporter.
+
+---
+
+## 2. Create Your App Record
+1.  Log in to [App Store Connect](https://appstoreconnect.apple.com/).
+2.  Go to **My Apps** and click the **"+"** button > **New App**.
+3.  **Platforms:** Select iOS.
+4.  **Name:** "FlexiBiz: Luxury Salon Manager" (or your unique name).
+5.  **Primary Language:** English (US).
+6.  **Bundle ID:** Select the ID you created for FlexiBiz.
+7.  **SKU:** A unique ID for your internal tracking (e.g., `flexibiz_prod_01`).
+8.  **User Access:** Full Access.
+
+---
+
+## 3. App Information & Pricing
+*   **App Information:** Under the "General" tab, set your **Privacy Policy URL**. This is mandatory.
+*   **Pricing and Availability:** 
+    *   Set your price (Free or Paid).
+    *   Select the countries where the app will be available.
+    *   **Tip:** For luxury salon software, "Free" with "In-App Purchases" is a common model if you plan to charge for premium features later.
+
+---
+
+## 4. Version Setup (The "Storefront")
+This is where you enter the details your clients will see.
+
+### A. Screenshots
+*   Upload the **High-Fidelity Assets** I prepared earlier for 6.5" and 5.5" displays.
+*   Ensure the first 3 screenshots highlight your best features (Dashboard, Calendar, Booking).
+
+### B. Descriptions & Keywords
+*   **Description:** Use the "Hair Salon Edition" copy from our marketing guide.
+*   **Keywords:** Use the SEO list we generated (salon, booking, stylist, etc.).
+*   **Support URL:** A simple website or even a Facebook page with contact info.
+
+### C. Build Selection
+*   Once your build has finished processing (after uploading from Xcode), click the **"+"** next to "Build" and select your version.
+
+---
+
+## 5. App Privacy (Nutrition Labels)
+Apple is very strict here. Use the **Firebase Privacy Guide** [Text] I provided to answer the questions:
+*   **Data Collection:** Disclose that you collect Contact Info, Identifiers, and Usage Data.
+*   **Tracking:** Answer **No**, as we use data only for app functionality and analytics.
+
+---
+
+## 6. App Review Information
+The Apple reviewer needs to be able to log in to see the app's functionality.
+*   **Sign-in required:** Check this box.
+*   **User name/Password:** Provide a "Manager" test account (create one in your Firestore/Auth console first).
+*   **Notes:** "This is a management suite for hair salons. Use the provided credentials to access the manager dashboard. The client booking flow can be accessed via the home screen."
+
+---
+
+## 7. Submission
+1.  Click **Save**.
+2.  Click **Add for Review**.
+3.  Answer the final export compliance and advertising questions.
+4.  Click **Submit to App Review**.
+
+**Review Time:** Typically takes 24–48 hours. Keep an eye on your email for any "Resolution Center" messages from Apple.
+
+**FlexiBiz is ready to shine!** Let me know if you hit any snags during the process.

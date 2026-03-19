@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Appointment Confirmed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;family=Inter:wght@200;300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-lowest": "#0e0e0e",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#e9c349",
+                        "primary": "#ffffff",
+                        "surface-bright": "#393939",
+                        "primary-fixed-dim": "#454747",
+                        "on-tertiary-fixed-variant": "#e3e2e2",
+                        "on-tertiary-container": "#000000",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-variant": "#353534",
+                        "on-surface": "#e5e2e1",
+                        "on-tertiary": "#1a1c1c",
+                        "surface-tint": "#c6c6c7",
+                        "primary-fixed": "#5d5f5f",
+                        "tertiary-fixed-dim": "#464747",
+                        "tertiary": "#e3e2e2",
+                        "on-primary-fixed-variant": "#e2e2e2",
+                        "surface-container-low": "#1c1b1b",
+                        "secondary-fixed-dim": "#cca730",
+                        "on-secondary-fixed": "#241a00",
+                        "on-secondary-container": "#ffe088",
+                        "background": "#131313",
+                        "tertiary-container": "#909191",
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed": "#ffffff",
+                        "secondary": "#e9c349",
+                        "on-primary-container": "#000000",
+                        "on-secondary-fixed-variant": "#4a3900",
+                        "tertiary-fixed": "#5d5e5f",
+                        "on-background": "#e5e2e1",
+                        "surface-dim": "#131313",
+                        "inverse-primary": "#5d5f5f",
+                        "outline-variant": "#474747",
+                        "on-error": "#690005",
+                        "outline": "#919191",
+                        "on-primary-fixed": "#ffffff",
+                        "secondary-container": "#574500",
+                        "inverse-on-surface": "#313030",
+                        "primary-container": "#d4d4d4",
+                        "surface-container": "#201f1f",
+                        "inverse-surface": "#e5e2e1",
+                        "on-secondary": "#241a00",
+                        "on-primary": "#1a1c1c",
+                        "surface-container-highest": "#353534",
+                        "surface": "#131313",
+                        "on-surface-variant": "#c6c6c6"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .luxury-gradient-bg {
+            background: radial-gradient(circle at 50% -20%, #2a2a2a 0%, #131313 70%);
+        }
+        .sparkle-overlay {
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(233, 195, 73, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 80% 10%, rgba(233, 195, 73, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(233, 195, 73, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 10% 80%, rgba(233, 195, 73, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 90% 90%, rgba(233, 195, 73, 0.05) 1px, transparent 1px);
+            background-size: 150px 150px;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-secondary selection:text-on-secondary">
+<!-- TopAppBar -->
+<nav class="w-full top-0 sticky bg-background/80 backdrop-blur-md z-50">
+<div class="flex items-center justify-between px-6 py-6 w-full max-w-lg mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-xl cursor-pointer transition-transform duration-200 active:scale-95">close</span>
+</div>
+<h1 class="text-xs font-light tracking-[0.3em] text-primary font-headline uppercase">Appointment Confirmed</h1>
+<div class="w-6"></div>
+</div>
+</nav>
+<main class="relative min-h-[calc(100vh-80px)] overflow-hidden flex flex-col items-center px-6 pt-4 pb-12">
+<!-- Background Elements -->
+<div class="absolute inset-0 luxury-gradient-bg pointer-events-none"></div>
+<div class="absolute inset-0 sparkle-overlay pointer-events-none"></div>
+<!-- Success Content -->
+<div class="relative z-10 w-full max-w-sm flex flex-col items-center text-center">
+<!-- Enhanced Hero Icon with Glow -->
+<div class="mb-10 relative">
+<!-- Golden Halo/Glow -->
+<div class="absolute inset-0 bg-secondary blur-[40px] opacity-20 rounded-full scale-150"></div>
+<div class="absolute inset-0 bg-secondary blur-[20px] opacity-10 rounded-full scale-110"></div>
+<div class="w-20 h-20 rounded-full border border-secondary/30 flex items-center justify-center relative bg-surface-container-low shadow-[0_0_30px_rgba(233,195,73,0.1)]">
+<span class="material-symbols-outlined text-secondary text-4xl" style="font-variation-settings: 'wght' 300, 'FILL' 0;">check</span>
+</div>
+</div>
+<!-- Headline -->
+<h2 class="font-headline font-extralight text-7xl text-primary tracking-tighter mb-4 leading-none">Success</h2>
+<p class="font-headline font-light text-on-surface-variant text-sm tracking-[0.2em] uppercase mb-12">See you soon at the studio</p>
+<!-- Minimalist Appointment Details Card -->
+<div class="w-full bg-surface-container-low/50 backdrop-blur-sm rounded-xl p-8 text-left relative overflow-hidden mb-12 border border-white/[0.03]">
+<div class="space-y-8">
+<div class="space-y-2">
+<span class="font-label text-[10px] tracking-[0.25em] text-secondary uppercase font-medium">Service</span>
+<p class="font-headline text-xl font-light text-primary">Artisan Cut &amp; Style</p>
+</div>
+<div class="space-y-2">
+<span class="font-label text-[10px] tracking-[0.25em] text-secondary uppercase font-medium">Specialist</span>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high ring-1 ring-white/10">
+<img class="w-full h-full object-cover grayscale brightness-110" data-alt="Close up portrait of Elena Vance stylist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSI_bdK7eXnOgHj9CVqg12BgT1oF7pby2bcPiNbwBZW4Fi26B8i11vdUDAtG6VIDwZnhfdpTOY8mIrmIyb2eu4tidIB2yVc0xvFOHeEc51dD_aGRxELZ_mBUUsk6uwJTyob0xnX1yxzPEbc6lHzZL5PCD9xJbgHhzfjeuyrcbIkstUJcT0q2kQPzChHLtUggInqC0i_l_h6Bz89i6G3m40VNYyT7S23Vz8QEeOWIH3PRIdJP8-8MhszEZc0SrcXNfw3t6A9VIsb8Y"/>
+</div>
+<p class="font-headline text-xl font-light text-primary">Elena Vance</p>
+</div>
+</div>
+<div class="space-y-2">
+<span class="font-label text-[10px] tracking-[0.25em] text-secondary uppercase font-medium">Date &amp; Time</span>
+<p class="font-headline text-xl font-light text-primary">Monday, Oct 24 @ 14:30</p>
+</div>
+</div>
+<!-- Subtle Actions -->
+<div class="mt-10 pt-8 border-t border-white/[0.05] flex flex-col gap-4">
+<div class="flex items-center gap-3 text-on-surface-variant hover:text-secondary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-lg opacity-60 group-hover:opacity-100">calendar_add_on</span>
+<span class="font-label text-[10px] tracking-widest uppercase">Add to calendar</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant hover:text-secondary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-lg opacity-60 group-hover:opacity-100">map</span>
+<span class="font-label text-[10px] tracking-widest uppercase">Get Directions</span>
+</div>
+</div>
+</div>
+<!-- Primary CTA -->
+<div class="w-full">
+<button class="w-full bg-primary text-on-primary py-5 rounded-full font-label font-semibold text-xs tracking-[0.25em] uppercase transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-95">
+                    Return to Home
+                </button>
+</div>
+<!-- Confirmation Number -->
+<p class="mt-8 text-on-surface-variant/30 font-label text-[9px] tracking-[0.4em] uppercase">Confirmation #BA-92841-LX</p>
+</div>
+</main>
+<!-- Suppressed Bottom Bar for Transactional Focus -->
+<div class="hidden">
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-center pb-10">
+<div class="bg-[#353534]/60 backdrop-blur-md fixed bottom-8 left-1/2 -translate-x-1/2 w-auto rounded-full px-6 py-3 flex items-center gap-8 shadow-[0_20px_40px_rgba(0,0,0,0.08)]">
+<span class="material-symbols-outlined text-[#C6C6C6] hover:text-[#FFFFFF] transition-all cursor-pointer">home</span>
+<span class="material-symbols-outlined text-[#E9C349] scale-110 cursor-pointer">calendar_today</span>
+<span class="material-symbols-outlined text-[#C6C6C6] hover:text-[#FFFFFF] transition-all cursor-pointer">content_cut</span>
+<span class="material-symbols-outlined text-[#C6C6C6] hover:text-[#FFFFFF] transition-all cursor-pointer">person</span>
+</div>
+</nav>
+</div>
+</body></html>

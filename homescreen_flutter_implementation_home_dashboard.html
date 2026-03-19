@@ -1,0 +1,300 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/theme/app_theme.dart';
+import '../../data/models/appointment_model.dart';
+import '../../data/services/database_service.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF131313),
+      appBar: _buildAppBar(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildGreeting(),
+            const SizedBox(height: 40),
+            _buildMetricsGrid(),
+            const SizedBox(height: 48),
+            _buildNextAppointmentHeader(),
+            const SizedBox(height: 16),
+            _buildNextAppointmentCard(),
+            const SizedBox(height: 80), // Space for FAB
+          ],
+        ),
+      ),
+      floatingActionButton: _buildQuickAddButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.menu, color: Colors.white),
+        onPressed: () {},
+      ),
+      title: const Text(
+        'FlexiBiz',
+        style: TextStyle(
+          fontFamily: 'Manrope',
+          fontWeight: FontWeight.w300,
+          letterSpacing: 2.0,
+          fontSize: 24,
+        ),
+      ),
+      actions: const [
+        Padding(
+          padding: EdgeInsets.only(right: 16.0),
+          child: CircleAvatar(
+            backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'),
+            radius: 18,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGreeting() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'GOOD MORNING, ALEX',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.6),
+            fontSize: 12,
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Your studio is ready\nfor 8 clients today.',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 32,
+            fontWeight: FontWeight.w300,
+            height: 1.2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricsGrid() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildMetricCard(
+            icon: Icons.calendar_today_outlined,
+            value: '8',
+            label: "TODAY'S APPOINTMENTS",
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildMetricCard(
+            icon: Icons.payments_outlined,
+            value: '\$450',
+            label: 'REVENUE TODAY',
+            trend: '+12% vs yesterday',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    String? trend,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1B),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: const Color(0xFFE9C349), size: 24),
+              if (trend != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE9C349).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    trend,
+                    style: const TextStyle(color: Color(0xFFE9C349), fontSize: 10),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 48),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w300),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 10, letterSpacing: 0.5),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNextAppointmentHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'Next Appointment',
+          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w300),
+        ),
+        TextButton(
+          onPressed: () {},
+          child: const Text(
+            'View Full Schedule',
+            style: TextStyle(color: Color(0xFFE9C349), fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNextAppointmentCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1B),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 30,
+                backgroundImage: NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80'),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Sarah Cohen',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w400),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, size: 14, color: Colors.white.withOpacity(0.5)),
+                        const SizedBox(width: 4),
+                        Text(
+                          '10:30 AM • Hair Coloring',
+                          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2A2A2A),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: const Text('Check In'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAddButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {},
+        icon: const Icon(Icons.add, size: 20),
+        label: const Text('Quick Add Appointment', style: TextStyle(letterSpacing: 0.5)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          shape: const StadiumBorder(),
+          elevation: 8,
+          shadowColor: Colors.black.withOpacity(0.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavBar() {
+    return Container(
+      padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24, top: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF131313).withOpacity(0.95),
+      ),
+      child: Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1B1B),
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home_filled, true),
+            _buildNavItem(Icons.people_outline, false),
+            _buildNavItem(Icons.calendar_month_outlined, false),
+            _buildNavItem(Icons.settings_outlined, false),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, bool isActive) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: isActive
+          ? const BoxDecoration(color: Colors.white, shape: BoxShape.circle)
+          : null,
+      child: Icon(
+        icon,
+        color: isActive ? Colors.black : Colors.white.withOpacity(0.5),
+        size: 24,
+      ),
+    );
+  }
+}

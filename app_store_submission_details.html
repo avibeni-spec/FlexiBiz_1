@@ -1,0 +1,57 @@
+# FlexiBiz - App Store & Google Play Submission Guide
+
+This document outlines the detailed requirements and steps to submit **FlexiBiz** (Manager and Client apps) to the Apple App Store and Google Play Store.
+
+## 1. Marketing Assets (The "Storefront")
+Your app's first impression is critical. Prepare these assets for both stores:
+
+### A. App Icons
+*   **iOS:** 1024x1024 px (No transparency).
+*   **Android:** 512x512 px + Feature Graphic (1024x500 px).
+
+### B. Screenshots (High-Fidelity)
+*   **Required Sizes (iOS):** 6.5" (iPhone 15/14/13/12 Pro Max) and 5.5" (iPhone 8 Plus).
+*   **Required Sizes (Android):** Phone, 7-inch tablet, and 10-inch tablet.
+*   **Pro Tip:** Use framed screenshots with short, punchy benefit-driven captions (e.g., "Manage your salon in seconds", "Luxury booking for your clients").
+
+### C. App Metadata
+*   **Name:** FlexiBiz (or your branded name).
+*   **Subtitle (iOS):** Premium Salon Management.
+*   **Description:** Highlight core features (Real-time sync, Client management, Analytics).
+*   **Keywords (iOS):** salon, booking, management, beauty, spa, appointments.
+*   **Support & Privacy URLs:** You must have a basic website with a Support link and a Privacy Policy.
+
+---
+
+## 2. Technical Requirements
+
+### A. iOS (App Store Connect)
+1.  **Bundle ID:** Must match the one in your Firebase/Xcode project.
+2.  **App Record:** Create a new app in [App Store Connect](https://appstoreconnect.apple.com/).
+3.  **Certificates & Profiles:** Generate a **Distribution Certificate** and a **Provisioning Profile** in the Apple Developer Portal.
+4.  **Privacy Info:** Apple requires you to disclose what data you collect (Contact info, Identifiers).
+5.  **Review Note:** Provide a test account (Email/Password) so the reviewer can log in and see the dashboard.
+
+### B. Android (Google Play Console)
+1.  **Package Name:** Must match `applicationId` in `build.gradle`.
+2.  **App Bundle (AAB):** Use the command `flutter build appbundle --release`.
+3.  **App Content:** You must complete the "App Content" section (Ads, Age Rating, Privacy Policy, Data Safety).
+4.  **Testing Tracks:** Start with an **Internal Testing** track to verify the build before going to Production.
+
+---
+
+## 3. Legal & Privacy
+Both stores require a **Privacy Policy**. Since FlexiBiz handles personal client data, ensure your policy covers:
+*   Data storage (Firebase).
+*   Encryption and Security.
+*   User rights to delete their account/data.
+
+---
+
+## 4. Final Checklist before "Submit for Review"
+- [ ] **Release Obfuscation:** Ensure you used `--obfuscate` in your build command to protect your logic.
+- [ ] **Firebase Rules:** Ensure your security rules are set to `Production` mode (not test mode).
+- [ ] **Broken Links:** Check that all buttons and navigation flows work perfectly on a real device.
+- [ ] **Permissions:** Ensure your `Info.plist` and `AndroidManifest.xml` have clear descriptions for why you need Camera/Notification access.
+
+**FlexiBiz is built to impress. Once your metadata is ready, hit that Submit button!**

@@ -1,0 +1,262 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
+import '../../data/models/client_model.dart';
+import '../../logic/providers/database_providers.dart';
+import '../../logic/providers/loading_provider.dart'; // Import the new global provider
+
+class AddClientScreen extends ConsumerStatefulWidget {
+  const AddClientScreen({super.key});
+
+  @override
+  ConsumerState<AddClientScreen> createState() => _AddClientScreenState();
+}
+
+class _AddClientScreenState extends ConsumerState<AddClientScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _notesController = TextEditingController();
+  String _selectedTier = 'Standard';
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveClient() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    // 1. Activate Global Loading
+    ref.read(globalLoadingProvider.notifier).state = true;
+
+    try {
+      final databaseService = ref.read(databaseProvider);
+      
+      final newClient = Client(
+        id: const Uuid().v4(),
+        fullName: _nameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        notes: _notesController.text.trim(),
+        tier: _selectedTier,
+        appointmentIds: [],
+      );
+
+      await databaseService.saveClient(newClient);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('CLIENT SYNCHRONIZED SUCCESSFULLY'),
+            backgroundColor: Color(0xFFE9C349),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('SYNCHRONIZATION ERROR: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      // 2. Deactivate Global Loading (always in finally block)
+      if (mounted) {
+        ref.read(globalLoadingProvider.notifier).state = false;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF131313),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        centerTitle: true,
+        title: const Text(
+          'NEW CLIENT',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            fontWeight: FontWeight.w300,
+            letterSpacing: 4.0,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _saveClient,
+            child: const Text(
+              'SAVE',
+              style: TextStyle(
+                color: Color(0xFFE9C349), 
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Personal Information',
+                style: TextStyle(
+                  color: Colors.white, 
+                  fontSize: 24, 
+                  fontFamily: 'Manrope', 
+                  fontWeight: FontWeight.w200,
+                ),
+              ),
+              const SizedBox(height: 40),
+              _buildTextField(
+                label: 'FULL NAME',
+                controller: _nameController,
+                hint: 'e.g. Sarah Cohen',
+                icon: Icons.person_outline,
+                validator: (value) => value!.isEmpty ? 'Please enter a name' : null,
+              ),
+              const SizedBox(height: 24),
+              _buildTextField(
+                label: 'PHONE NUMBER',
+                controller: _phoneController,
+                hint: '+972 50 000 0000',
+                icon: Icons.phone_outlined,
+                keyboardType: TextInputType.phone,
+                validator: (value) => value!.isEmpty ? 'Please enter a phone number' : null,
+              ),
+              const SizedBox(height: 24),
+              _buildTextField(
+                label: 'NOTES (OPTIONAL)',
+                controller: _notesController,
+                hint: 'Sensitive skin, prefers morning...',
+                icon: Icons.notes_outlined,
+                maxLines: 4,
+              ),
+              const SizedBox(height: 48),
+              _buildTierSelection(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.4),
+            fontSize: 10,
+            letterSpacing: 2,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C1B1B),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
+          ),
+          child: TextFormField(
+            controller: controller,
+            maxLines: maxLines,
+            keyboardType: keyboardType,
+            validator: validator,
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w300),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.white.withOpacity(0.15), fontSize: 14),
+              prefixIcon: Icon(icon, color: const Color(0xFFE9C349).withOpacity(0.7), size: 20),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTierSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'CLIENT TIER',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.4),
+            fontSize: 10,
+            letterSpacing: 2,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            _buildTierChip('Standard'),
+            const SizedBox(width: 12),
+            _buildTierChip('Premium'),
+            const SizedBox(width: 12),
+            _buildTierChip('Diamond'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTierChip(String label) {
+    final isSelected = _selectedTier == label;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTier = label),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : const Color(0xFF1C1B1B),
+          borderRadius: BorderRadius.circular(40),
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.1),
+          ),
+        ),
+        child: Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            color: isSelected ? Colors.black : Colors.white.withOpacity(0.5),
+            fontSize: 10,
+            letterSpacing: 1,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}

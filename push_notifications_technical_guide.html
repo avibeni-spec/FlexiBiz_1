@@ -1,0 +1,122 @@
+# FlexiBiz - Push Notifications Implementation Guide
+
+This document outlines how to set up and manage push notifications for appointment reminders and status updates using Firebase Cloud Messaging (FCM) and Cloud Functions.
+
+## 1. Firebase Configuration
+To enable push notifications, you must configure FCM in your Firebase project:
+1. **Enable Cloud Messaging** in the Firebase Console under Project Settings.
+2. **Apple (iOS):** Upload your APNs Auth Key (.p8 file) to Firebase.
+3. **Android:** FCM is enabled by default via the `google-services.json` file.
+
+## 2. Flutter Integration
+Add the necessary dependencies to your `pubspec.yaml`:
+```yaml
+dependencies:
+  firebase_messaging: ^latest_version
+  flutter_local_notifications: ^latest_version
+```
+
+## 3. Notification Service Implementation
+We'll create a dedicated service to handle token registration and incoming messages.
+
+```dart
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+class NotificationService {
+  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+
+  Future<void> initialize() async {
+    // Request permissions (especially for iOS)
+    NotificationSettings settings = await _fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      // Get the FCM token and save it to the user's Firestore document
+      String? token = await _fcm.getToken();
+      if (token != null) {
+        // saveTokenToDatabase(token);
+      }
+    }
+
+    // Handle background messages
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Handle foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      _showLocalNotification(message);
+    });
+  }
+
+  Future<void> _showLocalNotification(RemoteMessage message) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'high_importance_channel',
+      'High Importance Notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+
+    await _localNotifications.show(
+      message.hashCode,
+      message.notification?.title,
+      message.notification?.body,
+      platformDetails,
+    );
+  }
+}
+
+// Global background handler
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print("Handling a background message: ${message.messageId}");
+}
+```
+
+## 4. Automated Reminders (Cloud Functions)
+To send automatic reminders (e.g., 1 hour before an appointment), use Firebase Cloud Functions with a scheduled trigger.
+
+```javascript
+// index.js (Node.js)
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
+
+exports.sendAppointmentReminder = functions.pubsub.schedule('every 15 minutes').onRun(async (context) => {
+  const now = admin.firestore.Timestamp.now();
+  const oneHourFromNow = admin.firestore.Timestamp.fromMillis(now.toMillis() + (60 * 60 * 1000));
+
+  const appointments = await admin.firestore().collection('appointments')
+    .where('dateTime', '>=', now)
+    .where('dateTime', '<=', oneHourFromNow)
+    .where('status', '==', 'scheduled')
+    .where('reminderSent', '==', false)
+    .get();
+
+  const promises = [];
+  appointments.forEach(doc => {
+    const data = doc.data();
+    const payload = {
+      notification: {
+        title: 'Appointment Reminder',
+        body: `Hi! Your ${data.serviceType} is scheduled in 1 hour. We look forward to seeing you!`,
+      }
+    };
+    
+    // Fetch client token and send
+    // promises.push(admin.messaging().sendToDevice(clientToken, payload));
+    // promises.push(doc.ref.update({ reminderSent: true }));
+  });
+
+  return Promise.all(promises);
+});
+```
+
+## 5. Summary of Workflow
+1. **App Startup:** Initialize `NotificationService` and request permissions.
+2. **Database:** Store the unique FCM token in the `clients` or `managers` Firestore document.
+3. **Trigger:** Use Cloud Functions to monitor the `appointments` collection and send notifications based on time or status changes (e.g., when a manager cancels a booking).

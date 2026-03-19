@@ -1,0 +1,309 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../logic/providers/database_providers.dart';
+import '../../data/models/appointment_model.dart';
+
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final today = DateTime.now();
+    final appointmentsAsync = ref.watch(appointmentsStreamProvider(today));
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF131313),
+      appBar: _buildAppBar(),
+      body: appointmentsAsync.when(
+        data: (appointments) => _buildContent(context, appointments),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE9C349))),
+        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+      ),
+      floatingActionButton: _buildQuickAddButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, List<Appointment> appointments) {
+    // Logic for metrics
+    final todayCount = appointments.length;
+    // Assuming a flat rate of $50 per service for this example logic
+    final estimatedRevenue = todayCount * 50; 
+
+    // Logic for "Next Appointment"
+    final now = DateTime.now();
+    final nextAppointment = appointments
+        .where((a) => a.dateTime.isAfter(now) && a.status != AppointmentStatus.cancelled)
+        .toList()
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildGreeting(todayCount),
+          const SizedBox(height: 40),
+          _buildMetricsGrid(todayCount, estimatedRevenue),
+          const SizedBox(height: 48),
+          _buildNextAppointmentHeader(),
+          const SizedBox(height: 16),
+          if (nextAppointment.isNotEmpty)
+            _buildNextAppointmentCard(nextAppointment.first)
+          else
+            _buildNoAppointmentsCard(),
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: const Text(
+        'FlexiBiz',
+        style: TextStyle(
+          fontFamily: 'Manrope',
+          fontWeight: FontWeight.w300,
+          letterSpacing: 2.0,
+          fontSize: 24,
+        ),
+      ),
+      actions: const [
+        Padding(
+          padding: EdgeInsets.only(right: 16.0),
+          child: CircleAvatar(
+            backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'),
+            radius: 18,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGreeting(int count) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'GOOD MORNING, MANAGER',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.6),
+            fontSize: 12,
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Your studio has\n$count clients today.',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 32,
+            fontWeight: FontWeight.w300,
+            height: 1.2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricsGrid(int count, int revenue) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildMetricCard(
+            icon: Icons.calendar_today_outlined,
+            value: count.toString(),
+            label: "TODAY'S APPOINTMENTS",
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildMetricCard(
+            icon: Icons.payments_outlined,
+            value: '\$$revenue',
+            label: 'EST. REVENUE',
+            trend: 'Live from cloud',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    String? trend,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1B),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: const Color(0xFFE9C349), size: 24),
+              if (trend != null)
+                Text(
+                  trend,
+                  style: const TextStyle(color: Color(0xFFE9C349), fontSize: 8),
+                ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w300),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 9, letterSpacing: 0.5),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNextAppointmentHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'Next Appointment',
+          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w300),
+        ),
+        TextButton(
+          onPressed: () {},
+          child: const Text(
+            'See All',
+            style: TextStyle(color: Color(0xFFE9C349), fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNextAppointmentCard(Appointment appointment) {
+    final timeStr = DateFormat('HH:mm').format(appointment.dateTime);
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1B),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 24,
+                backgroundColor: Color(0xFF2A2A2A),
+                child: Icon(Icons.person, color: Colors.white24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Client', // In real app, fetch client name by ID
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w400),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$timeStr • ${appointment.serviceType}',
+                      style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.white24),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoAppointmentsCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1B),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.event_available, color: Colors.white.withOpacity(0.1), size: 48),
+          const SizedBox(height: 16),
+          Text(
+            'No more appointments today',
+            style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAddButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {},
+        icon: const Icon(Icons.add, size: 20),
+        label: const Text('New Appointment', style: TextStyle(letterSpacing: 0.5)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          shape: const StadiumBorder(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavBar() {
+    return Container(
+      padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24, top: 12),
+      color: const Color(0xFF131313),
+      child: Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1B1B),
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home_filled, true),
+            _buildNavItem(Icons.people_outline, false),
+            _buildNavItem(Icons.calendar_month_outlined, false),
+            _buildNavItem(Icons.settings_outlined, false),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, bool isActive) {
+    return Icon(
+      icon,
+      color: isActive ? Colors.white : Colors.white.withOpacity(0.3),
+      size: 24,
+    );
+  }
+}

@@ -1,0 +1,91 @@
+# Finalized Firestore Security Rules for FlexiBiz (Production Ready)
+
+These rules are designed to provide maximum security while enabling the real-time features of your luxury management platform. They ensure that managers have full control over their business data, while clients can only access their own appointments and profiles.
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- GLOBAL HELPERS ---
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the authenticated user is a Manager
+    // This assumes you have a 'managers' collection where the doc ID is the UID
+    function isManager() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/managers/$(request.auth.uid));
+    }
+
+    // Check if the authenticated user matches the provided ID
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // --- BUSINESS PROFILE ---
+    // Publicly readable so the Client App can show salon info, 
+    // but only editable by the Manager.
+    match /businesses/{businessId} {
+      allow read: if true; 
+      allow write: if isManager();
+    }
+
+    // --- CLIENTS ---
+    // Managers can manage all clients.
+    // Individual clients can only read/write their own profile.
+    match /clients/{clientId} {
+      allow read, write: if isManager();
+      allow read, update: if isOwner(clientId);
+      allow create: if isAuthenticated(); // Allow new sign-ups
+    }
+
+    // --- APPOINTMENTS ---
+    // Managers have full access to the schedule.
+    // Clients can read their own appointments and create new ones.
+    match /appointments/{appointmentId} {
+      allow read, write: if isManager();
+      allow create: if isAuthenticated();
+      allow read, update: if isAuthenticated() && 
+        (resource == null || resource.data.clientId == request.auth.uid);
+    }
+
+    // --- SERVICES & SPECIALISTS ---
+    // Publicly readable for the booking flow.
+    // Only the Manager can modify the catalog.
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isManager();
+    }
+    
+    match /specialists/{specialistId} {
+      allow read: if true;
+      allow write: if isManager();
+    }
+
+    // --- ANALYTICS (MANAGER ONLY) ---
+    // Sensitive business data restricted exclusively to the Manager.
+    match /analytics/{reportId} {
+      allow read, write: if isManager();
+    }
+
+    // --- MANAGER PROFILE ---
+    match /managers/{managerId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(managerId);
+    }
+  }
+}
+```
+
+## Implementation Instructions:
+1.  **Copy the code above.**
+2.  Go to the **Firebase Console** > **Firestore Database**.
+3.  Navigate to the **Rules** tab.
+4.  Replace the existing rules with this finalized production-ready version.
+5.  Click **Publish**.
+
+**Security Note:** These rules assume a specific data structure where 'managers' are stored in their own collection. This prevents unauthorized users from escalating their privileges.

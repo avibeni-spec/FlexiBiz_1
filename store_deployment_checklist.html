@@ -1,0 +1,30 @@
+# FlexiBiz Store Deployment & Final Checklist
+
+You are almost ready to launch! Follow this checklist to ensure a smooth transition from development to production.
+
+## 1. Branding & Assets
+- [ ] **App Icons:** Generate all sizes for iOS (Xcode) and Android (res/mipmap).
+- [ ] **Splash Screens:** Configure the `flutter_native_splash` package for a premium branded entry.
+- [ ] **Store Screenshots:** Use high-resolution images of your best-looking screens (Home, Calendar, Select Service).
+
+## 2. Technical Prep
+- [ ] **Environment Configuration:** Ensure you have separate `google-services.json` and `GoogleService-Info.plist` for development and production if needed.
+- [ ] **Release Signing:**
+  - **Android:** Generate an upload keystore and configure `key.properties`.
+  - **iOS:** Set up a Distribution Certificate and Provisioning Profile in App Store Connect.
+- [ ] **Obfuscation:** Enable code shrinking and obfuscation in `build.gradle` to protect your code.
+
+## 3. Firebase & Backend
+- [ ] **Security Rules:** Deploy the **Firestore Security Rules** provided in the previous step.
+- [ ] **Indexes:** Ensure all Firestore queries (especially those with `orderBy`) have the necessary composite indexes created in the console.
+- [ ] **Authentication:** Enable the desired sign-in methods (Phone, Google, Apple) in the Firebase Auth console.
+
+## 4. Quality Assurance
+- [ ] **Real Device Testing:** Test the app on at least one physical iPhone and one Android device to check performance and animations.
+- [ ] **Edge Cases:** Test booking on a day with no availability and adding a client with an existing phone number.
+
+## 5. Store Listing
+- [ ] **App Store Connect:** Create your app record, fill in descriptions, keywords, and support URLs.
+- [ ] **Google Play Console:** Create your app, complete the "App Content" section, and set up your store listing.
+
+**Success!** Once these are checked off, you're ready to share FlexiBiz with the world.

@@ -1,0 +1,57 @@
+# מדריך העלאת FlexiBiz ל-Google Play Console
+
+תהליך ההעלאה לחנות של גוגל דורש מעבר על מספר שלבים מרכזיים. הנה המדריך השלם שיבטיח שהאפליקציה שלך תעבור את הבדיקה של גוגל בהצלחה.
+
+---
+
+## 1. יצירת רשימת האפליקציה (App Record)
+1. היכנס ל-[Google Play Console](https://play.google.com/console/).
+2. לחץ על **Create app**.
+3. **App name:** FlexiBiz: Luxury Salon Manager (או השם שבחרת).
+4. **Default language:** English (US) או Hebrew.
+5. **App or Game:** App.
+6. **Free or Paid:** בחר את המודל העסקי שלך.
+7. אשר את הצהרות המפתחים ולחץ על **Create app**.
+
+---
+
+## 2. הגדרת האפליקציה (Set up your app)
+גוגל דורשת שתשלים סדרת משימות לפני שתוכל להגיש את האפליקציה:
+1. **Privacy policy:** הכנס את הקישור למדיניות הפרטיות שיצרנו (חובה עבור אפליקציות עם Firestore/Auth).
+2. **App access:** סמן שחלק מהאפליקציה דורש גישה מיוחדת וספק את פרטי חשבון ה-Manager שפתחנו לבדיקה.
+3. **Content rating:** מלא את השאלון לקבלת דירוג גיל (בדרך כלל 3+ עבור אפליקציות ניהול).
+4. **Data safety:** שלב קריטי! השתמש במדריך ה-**Firebase Privacy Requirements** שהכנו כדי להצהיר על איסוף נתונים (מזהים, פרטי קשר וכו').
+
+---
+
+## 3. הכנת דף החנות (Store Listing)
+זהו ה-Showcase של העסק שלך:
+1. **Short description:** "ניהול יוקרתי למספרות וסטודיו ליופי."
+2. **Full description:** השתמש בטקסט השיווקי שכתבנו (Hair Salon Edition).
+3. **Graphics:**
+   - **App icon:** 512x512 px.
+   - **Feature graphic:** 1024x500 px.
+   - **Screenshots:** העלה את צילומי המסך המעובדים (High-Fidelity Assets) שהכנתי עבורך.
+
+---
+
+## 4. העלאת ה-Build (Release)
+1. בתפריט הצדדי, עבור ל-**Production** > **Create new release**.
+2. **App bundles:** העלה את קובץ ה-`.aab` שנוצר לאחר הרצת פקודת ה-Build בטרמינל.
+3. **Release name:** לדוגמה `1.0.0 (1)`.
+4. **Release notes:** "גרסת ההשקה של FlexiBiz - פלטפורמת ניהול יוקרתית למספרות."
+
+---
+
+## 5. הגשה לבדיקה (Review)
+1. לחץ על **Next** ולאחר מכן על **Go to overview**.
+2. וודא שכל המשימות הושלמו.
+3. לחץ על **Send for review**.
+
+**זמן בדיקה:** בדרך כלל לוקח בין יום ל-7 ימים (בחשבונות חדשים זה עשוי לקחת מעט יותר).
+
+---
+
+**טיפ של Stitch:** וודא שחוקי האבטחה (Security Rules) ב-Firebase מוגדרים על Production לפני ההגשה, כדי שהבודק של גוגל יוכל להשתמש באפליקציה בצורה חלקה.
+
+בהצלחה! FlexiBiz עומדת להיות זמינה לכולם! 🌟

@@ -1,0 +1,105 @@
+# Global Loading State with Riverpod
+
+To provide a consistent and professional user experience, we can implement a global loading state. This allows you to show a high-end loading overlay (like a blur or a spinner) whenever the app is performing an asynchronous operation (e.g., saving a client, updating a booking).
+
+## 1. The Loading Provider (`logic/providers/loading_provider.dart`)
+
+This provider manages the boolean state of whether the app is currently "loading".
+
+```dart
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// A simple StateProvider to track global loading status
+final globalLoadingProvider = StateProvider<bool>((ref) => false);
+```
+
+## 2. The Global Loading Wrapper (`ui/common/loading_wrapper.dart`)
+
+This widget wraps your entire app (or specific screens) and displays an overlay when `globalLoadingProvider` is true.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../logic/providers/loading_provider.dart';
+
+class GlobalLoadingWrapper extends ConsumerWidget {
+  final Widget child;
+
+  const GlobalLoadingWrapper({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLoading = ref.watch(globalLoadingProvider);
+
+    return Stack(
+      children: [
+        child,
+        if (isLoading)
+          Container(
+            color: Colors.black.withOpacity(0.7), // Semi-transparent black
+            child: const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(
+                    color: Color(0xFFE9C349), // Our Onyx & Alabaster Gold
+                    strokeWidth: 2,
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'SYCHRONIZING...',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'Manrope',
+                      letterSpacing: 4,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+```
+
+## 3. How to Use in `main.dart`
+
+Wrap your `MaterialApp`'s builder or specific screens with the `GlobalLoadingWrapper`.
+
+```dart
+// main.dart
+Widget build(BuildContext context) {
+  return ProviderScope(
+    child: MaterialApp(
+      theme: AppTheme.darkTheme,
+      builder: (context, child) => GlobalLoadingWrapper(child: child!),
+      home: const HomeScreen(),
+    ),
+  );
+}
+```
+
+## 4. Triggering the Loading State in your Logic
+
+When performing an action, toggle the provider:
+
+```dart
+Future<void> _handleSave() async {
+  // 1. Show Loading
+  ref.read(globalLoadingProvider.notifier).state = true;
+
+  try {
+    await ref.read(databaseProvider).saveClient(newClient);
+    // Success feedback...
+  } finally {
+    // 2. Hide Loading (always hide in finally block)
+    ref.read(globalLoadingProvider.notifier).state = false;
+  }
+}
+```
+
+This approach keeps your UI clean and provides clear feedback to the user during cloud operations.

@@ -1,0 +1,206 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../core/theme/app_theme.dart';
+
+class AddAppointmentScreen extends StatefulWidget {
+  const AddAppointmentScreen({super.key});
+
+  @override
+  State<AddAppointmentScreen> createState() => _AddAppointmentScreenState();
+}
+
+class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  String _selectedService = 'Hair Coloring';
+  String? _selectedClient;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF131313),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        centerTitle: true,
+        title: const Text(
+          'NEW APPOINTMENT',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            fontWeight: FontWeight.w300,
+            letterSpacing: 4.0,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('SELECT CLIENT'),
+            const SizedBox(height: 16),
+            _buildClientPicker(),
+            const SizedBox(height: 32),
+            _buildSectionHeader('SERVICE TYPE'),
+            const SizedBox(height: 16),
+            _buildServicePicker(),
+            const SizedBox(height: 32),
+            _buildSectionHeader('DATE & TIME'),
+            const SizedBox(height: 16),
+            _buildDateTimePicker(),
+            const SizedBox(height: 48),
+            _buildSubmitButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        color: Colors.white.withOpacity(0.4),
+        fontSize: 10,
+        letterSpacing: 1.5,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  Widget _buildClientPicker() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1B),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.person_search_outlined, color: Color(0xFFE9C349)),
+          const SizedBox(width: 16),
+          const Text(
+            'Search for a client...',
+            style: TextStyle(color: Colors.white54, fontSize: 16),
+          ),
+          const Spacer(),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.add_circle_outline, color: Colors.white30),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServicePicker() {
+    final services = ['Hair Cut', 'Hair Coloring', 'Styling', 'Treatment'];
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: services.map((service) {
+        final isSelected = _selectedService == service;
+        return GestureDetector(
+          onTap: () => setState(() => _selectedService = service),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : const Color(0xFF1C1B1B),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              service,
+              style: TextStyle(
+                color: isSelected ? Colors.black : Colors.white70,
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildDateTimePicker() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildPickerCard(
+            icon: Icons.calendar_today_outlined,
+            value: DateFormat('MMM dd, yyyy').format(_selectedDate),
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate,
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
+              );
+              if (date != null) setState(() => _selectedDate = date);
+            },
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildPickerCard(
+            icon: Icons.access_time,
+            value: _selectedTime.format(context),
+            onTap: () async {
+              final time = await showTimePicker(
+                context: context,
+                initialTime: _selectedTime,
+              );
+              if (time != null) setState(() => _selectedTime = time);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPickerCard({required IconData icon, required String value, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1B1B),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: const Color(0xFFE9C349), size: 20),
+            const SizedBox(height: 16),
+            Text(value, style: const TextStyle(color: Colors.white, fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          shape: const StadiumBorder(),
+        ),
+        child: const Text(
+          'CREATE APPOINTMENT',
+          style: TextStyle(letterSpacing: 1.5, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+}

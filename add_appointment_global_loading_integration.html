@@ -1,0 +1,298 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+import '../../data/models/appointment_model.dart';
+import '../../logic/providers/database_providers.dart';
+import '../../logic/providers/loading_provider.dart'; // Import the global loading provider
+
+class AddAppointmentScreen extends ConsumerStatefulWidget {
+  const AddAppointmentScreen({super.key});
+
+  @override
+  ConsumerState<AddAppointmentScreen> createState() => _AddAppointmentScreenState();
+}
+
+class _AddAppointmentScreenState extends ConsumerState<AddAppointmentScreen> {
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  String _selectedService = 'Hair Coloring';
+  String? _selectedClientId;
+
+  Future<void> _saveAppointment() async {
+    if (_selectedClientId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('PLEASE SELECT A CLIENT'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // 1. Activate Global Loading
+    ref.read(globalLoadingProvider.notifier).state = true;
+
+    try {
+      final databaseService = ref.read(databaseProvider);
+      
+      // Combine date and time
+      final appointmentDateTime = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
+
+      final newAppointment = Appointment(
+        id: const Uuid().v4(),
+        dateTime: appointmentDateTime,
+        serviceType: _selectedService,
+        clientId: _selectedClientId!,
+        status: AppointmentStatus.scheduled,
+      );
+
+      await databaseService.createAppointment(newAppointment);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('APPOINTMENT SYNCHRONIZED SUCCESSFULLY'),
+            backgroundColor: Color(0xFFE9C349),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('SYNCHRONIZATION ERROR: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      // 2. Deactivate Global Loading
+      if (mounted) {
+        ref.read(globalLoadingProvider.notifier).state = false;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF131313),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        centerTitle: true,
+        title: const Text(
+          'NEW APPOINTMENT',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            fontWeight: FontWeight.w300,
+            letterSpacing: 4.0,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('SELECT CLIENT'),
+            const SizedBox(height: 16),
+            _buildClientPicker(),
+            const SizedBox(height: 32),
+            _buildSectionHeader('SERVICE TYPE'),
+            const SizedBox(height: 16),
+            _buildServicePicker(),
+            const SizedBox(height: 32),
+            _buildSectionHeader('DATE & TIME'),
+            const SizedBox(height: 16),
+            _buildDateTimePicker(),
+            const SizedBox(height: 48),
+            _buildSubmitButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        color: Colors.white.withOpacity(0.4),
+        fontSize: 10,
+        letterSpacing: 2,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+
+  Widget _buildClientPicker() {
+    return GestureDetector(
+      onTap: () {
+        setState(() => _selectedClientId = 'sample-client-id');
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1B1B),
+          borderRadius: BorderRadius.circular(20),
+          border: _selectedClientId != null 
+              ? Border.all(color: const Color(0xFFE9C349).withOpacity(0.5), width: 1) 
+              : Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              _selectedClientId != null ? Icons.person : Icons.person_search_outlined, 
+              color: const Color(0xFFE9C349)
+            ),
+            const SizedBox(width: 16),
+            Text(
+              _selectedClientId != null ? 'Sarah Cohen (Selected)' : 'Search for a client...',
+              style: TextStyle(
+                color: _selectedClientId != null ? Colors.white : Colors.white.withOpacity(0.3), 
+                fontSize: 16,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            const Spacer(),
+            if (_selectedClientId == null)
+              const Icon(Icons.chevron_right, color: Colors.white24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildServicePicker() {
+    final services = ['Hair Cut', 'Hair Coloring', 'Styling', 'Treatment'];
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: services.map((service) {
+        final isSelected = _selectedService == service;
+        return GestureDetector(
+          onTap: () => setState(() => _selectedService = service),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : const Color(0xFF1C1B1B),
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(color: isSelected ? Colors.white : Colors.white.withOpacity(0.05)),
+            ),
+            child: Text(
+              service.toUpperCase(),
+              style: TextStyle(
+                color: isSelected ? Colors.black : Colors.white.withOpacity(0.5),
+                fontSize: 10,
+                letterSpacing: 1,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildDateTimePicker() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildPickerCard(
+            icon: Icons.calendar_today_outlined,
+            value: DateFormat('MMM dd, yyyy').format(_selectedDate),
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate,
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
+              );
+              if (date != null) setState(() => _selectedDate = date);
+            },
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildPickerCard(
+            icon: Icons.access_time,
+            value: _selectedTime.format(context),
+            onTap: () async {
+              final time = await showTimePicker(
+                context: context,
+                initialTime: _selectedTime,
+              );
+              if (time != null) setState(() => _selectedTime = time);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPickerCard({required IconData icon, required String value, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1B1B),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: const Color(0xFFE9C349), size: 20),
+            const SizedBox(height: 20),
+            Text(
+              value, 
+              style: const TextStyle(
+                color: Colors.white, 
+                fontSize: 16,
+                fontWeight: FontWeight.w300,
+              )
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _saveAppointment,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(vertical: 22),
+          shape: const StadiumBorder(),
+          elevation: 0,
+        ),
+        child: const Text(
+          'CREATE APPOINTMENT',
+          style: TextStyle(letterSpacing: 2, fontWeight: FontWeight.w800, fontSize: 14),
+        ),
+      ),
+    );
+  }
+}

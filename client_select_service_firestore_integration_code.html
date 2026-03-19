@@ -1,0 +1,90 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../logic/providers/database_providers.dart';
+
+class ClientSelectServiceScreen extends ConsumerWidget {
+  const ClientSelectServiceScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // In a real app, we'd have a services collection
+    // For now, we listen to the generic services stream if available
+    final servicesAsync = ref.watch(servicesStreamProvider); 
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF131313),
+      appBar: _buildAppBar(),
+      body: servicesAsync.when(
+        data: (services) => _buildContent(context, services),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE9C349))),
+        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, List<dynamic> services) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'THE SELECTION',
+            style: TextStyle(color: Color(0xFFE9C349), fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Refine Your\nSignature Look',
+            style: TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w300, height: 1.1),
+          ),
+          const SizedBox(height: 48),
+          _buildServiceSection(title: 'Available Treatments', items: services),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: const Text('ESTHÉTIQUE', style: TextStyle(color: Colors.white, letterSpacing: 6, fontSize: 18, fontWeight: FontWeight.w300)),
+    );
+  }
+
+  Widget _buildServiceSection({required String title, required List<dynamic> items}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w300)),
+        const SizedBox(height: 32),
+        ...items.map((service) => _buildServiceTile(service)).toList(),
+      ],
+    );
+  }
+
+  Widget _buildServiceTile(dynamic service) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(service.name, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w400)),
+                const SizedBox(height: 4),
+                Text('${service.duration} MIN • ${service.category}', style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, letterSpacing: 1)),
+              ],
+            ),
+          ),
+          Text('\$${service.price}', style: const TextStyle(color: Colors.white, fontSize: 18)),
+          const SizedBox(width: 16),
+          const Icon(Icons.add_circle_outline, color: Color(0xFFE9C349)),
+        ],
+      ),
+    );
+  }
+}

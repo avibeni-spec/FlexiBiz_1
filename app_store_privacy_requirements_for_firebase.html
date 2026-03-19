@@ -1,0 +1,90 @@
+# App Store Privacy (App Privacy Nutrition Labels) for Firebase
+
+When submitting FlexiBiz to the Apple App Store, you must complete the **App Privacy** section in App Store Connect. Since we use Firebase for authentication, database, and analytics, here is exactly how to answer the privacy questions.
+
+## 1. Data Collection Overview
+Apple categorizes data into types. For a standard FlexiBiz implementation using Firebase, you are typically collecting the following:
+
+### A. Contact Info
+*   **Name:** Collected for both Managers and Clients (for profile and appointments).
+*   **Email Address:** Used for Authentication and communication.
+*   **Phone Number:** Used for Authentication and client management.
+*   **Purpose:** App Functionality.
+*   **Linked to User:** Yes.
+*   **Tracking:** No.
+
+### B. Identifiers
+*   **User ID:** Firebase Authentication's unique UID.
+*   **Device ID:** Used by Firebase Installation ID for push notifications and analytics.
+*   **Purpose:** App Functionality, Analytics.
+*   **Linked to User:** Yes.
+*   **Tracking:** No (unless you use the IDFA for advertising, which we don't in FlexiBiz).
+
+### C. Usage Data
+*   **Product Interaction:** Tracked by Firebase Analytics (e.g., "Clicked Book Appointment").
+*   **Purpose:** Analytics.
+*   **Linked to User:** Yes.
+*   **Tracking:** No.
+
+### D. Diagnostics
+*   **Crash Data:** Collected by Firebase Crashlytics.
+*   **Performance Data:** Collected by Firebase Performance Monitoring.
+*   **Purpose:** Analytics.
+*   **Linked to User:** Yes (for troubleshooting).
+*   **Tracking:** No.
+
+---
+
+## 2. Firebase-Specific Privacy Details
+
+### Firebase Authentication
+*   **Data:** Email, Password, Phone Number, UIDs.
+*   **Linked to User?** Yes.
+*   **Tracking?** No.
+*   **Purpose:** App Functionality.
+
+### Cloud Firestore
+*   **Data:** Any business/client data you store (Names, Notes, Appointments).
+*   **Linked to User?** Yes.
+*   **Tracking?** No.
+*   **Purpose:** App Functionality.
+
+### Firebase Cloud Messaging (FCM)
+*   **Data:** APNs Device Token, Firebase Installation ID.
+*   **Linked to User?** Yes (to send notifications to a specific user).
+*   **Tracking?** No.
+*   **Purpose:** App Functionality.
+
+### Firebase Crashlytics & Analytics
+*   **Data:** Device model, OS version, crash traces, event logs.
+*   **Linked to User?** Yes.
+*   **Tracking?** No.
+*   **Purpose:** Analytics.
+
+---
+
+## 3. The "Tracking" Question
+Apple asks: *"Do you or your third-party partners use data collected from this app to track users?"*
+
+**Answer: NO.**
+FlexiBiz uses data for its own functionality and analytics. We do not share data with third parties for cross-app advertising (unless you decide to add an ad-tech SDK later, which is not part of the current architecture).
+
+---
+
+## 4. Privacy Policy Requirement
+You must provide a URL to a **Privacy Policy**. This policy should state:
+1.  **What you collect:** (Names, Emails, Phones, Appointment details).
+2.  **Who you share it with:** (Google/Firebase for storage and processing).
+3.  **User Rights:** (How they can delete their account or data).
+4.  **Security:** (Data is encrypted in transit and at rest via Firebase).
+
+## 5. Summary Table for App Store Connect
+
+| Data Type | Purpose | Linked to User? | Tracking? |
+| :--- | :--- | :--- | :--- |
+| **Contact Info** | App Functionality | Yes | No |
+| **Identifiers** | App Functionality, Analytics | Yes | No |
+| **Usage Data** | Analytics | Yes | No |
+| **Diagnostics** | Analytics | Yes | No |
+
+**Tip:** Apple is very strict about this. Being transparent here speeds up the review process and builds trust with your luxury clients.

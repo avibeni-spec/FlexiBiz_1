@@ -1,0 +1,84 @@
+# FlexiBiz Riverpod & State Management Architecture
+
+Riverpod is the "brain" of FlexiBiz. It manages how data flows from Firestore to your UI and ensures the app stays in sync across all devices.
+
+## 1. Why Riverpod for FlexiBiz?
+- **Global Access:** Access your database services and data from anywhere without "prop drilling".
+- **Real-time Sync:** It handles `Streams` perfectly, updating the UI automatically when Firestore data changes.
+- **Testability:** Makes it easy to mock data for testing.
+- **Performance:** Only rebuilds the specific widgets that need new data.
+
+## 2. The Core Providers (`logic/providers/database_providers.dart`)
+
+We use three main types of providers in this project:
+
+### A. Service Provider (The Engine)
+This provides a single instance of our `DatabaseService` to the rest of the app.
+```dart
+final databaseProvider = Provider((ref) => DatabaseService());
+```
+
+### B. Stream Providers (The Data Pipeline)
+These "listen" to Firestore and push updates to the UI.
+```dart
+// Listens to the entire clients collection
+final clientsStreamProvider = StreamProvider<List<Client>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.streamClients();
+});
+
+// Listens to appointments for a specific date (uses .family for parameters)
+final appointmentsStreamProvider = StreamProvider.family<List<Appointment>, DateTime>((ref, date) {
+  final db = ref.watch(databaseProvider);
+  return db.streamAppointmentsForDate(date);
+});
+```
+
+### C. AsyncValue (The UI State)
+In your UI, these providers return an `AsyncValue`, which has three states:
+1. `data`: The data is ready.
+2. `loading`: Data is being fetched.
+3. `error`: Something went wrong.
+
+## 3. How to Use in a Widget (Example: HomeScreen)
+
+To use Riverpod, your widget must extend `ConsumerWidget` or `ConsumerStatefulWidget`.
+
+```dart
+class HomeScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 1. "Watch" the provider
+    final appointmentsAsync = ref.watch(appointmentsStreamProvider(DateTime.now()));
+
+    // 2. Use .when to handle the three states
+    return Scaffold(
+      body: appointmentsAsync.when(
+        data: (appointments) => ListView.builder(
+          itemCount: appointments.length,
+          itemBuilder: (context, index) => AppointmentCard(appointments[index]),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+}
+```
+
+## 4. Triggering Actions (Example: Adding a Client)
+
+When you want to *do* something (like click a Save button), use `ref.read` instead of `ref.watch`.
+
+```dart
+void _onSave() async {
+  final db = ref.read(databaseProvider);
+  await db.saveClient(newClient);
+  // The UI will automatically update because the StreamProvider is watching Firestore!
+}
+```
+
+## 5. Summary of Setup
+1. **Initialize:** Wrap your `MyApp` in a `ProviderScope` in `main.dart`.
+2. **Define:** Create your providers in a central logic file.
+3. **Consume:** Use `ConsumerWidget` and `ref.watch` in your UI files.

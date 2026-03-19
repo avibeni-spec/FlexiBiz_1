@@ -1,0 +1,163 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import '../../data/models/appointment_model.dart';
+import '../../logic/providers/database_providers.dart';
+
+class ClientMyAppointmentsScreen extends ConsumerWidget {
+  const ClientMyAppointmentsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // This provider queries appointments filtered by the current user's ID
+    final appointmentsAsync = ref.watch(clientAppointmentsProvider);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF131313),
+      appBar: _buildAppBar(),
+      body: appointmentsAsync.when(
+        data: (appointments) => _buildContent(context, appointments),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE9C349))),
+        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, List<Appointment> appointments) {
+    final upcoming = appointments.where((a) => a.dateTime.isAfter(DateTime.now())).toList()
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    final past = appointments.where((a) => a.dateTime.isBefore(DateTime.now())).toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('My Visits', style: TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.w300)),
+          const SizedBox(height: 8),
+          Text('CURATED TIMELINE', style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 10, letterSpacing: 2)),
+          const SizedBox(height: 48),
+          _buildSectionHeader('UPCOMING SESSIONS'),
+          const SizedBox(height: 24),
+          if (upcoming.isEmpty)
+            _buildEmptyState('No upcoming appointments')
+          else
+            ...upcoming.map((a) => _buildAppointmentCard(a, isNext: upcoming.first == a)),
+          const SizedBox(height: 48),
+          _buildSectionHeader('PAST ARCHIVE'),
+          const SizedBox(height: 24),
+          if (past.isEmpty)
+            _buildEmptyState('No past visits yet')
+          else
+            ...past.map((a) => _buildPastVisitTile(a)),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: const Text('ESTHÉTIQUE', style: TextStyle(color: Colors.white, letterSpacing: 6, fontSize: 18, fontWeight: FontWeight.w300)),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(color: Color(0xFFE9C349), fontSize: 14, letterSpacing: 1, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Container(height: 1, width: 40, color: const Color(0xFFE9C349)),
+      ],
+    );
+  }
+
+  Widget _buildAppointmentCard(Appointment a, {bool isNext = false}) {
+    final dateStr = DateFormat('MMMM dd, yyyy').format(a.dateTime);
+    final timeStr = DateFormat('HH:mm').format(a.dateTime);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(color: const Color(0xFF1C1B1B), borderRadius: BorderRadius.circular(32)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 8, height: 8, decoration: BoxDecoration(color: isNext ? const Color(0xFFE9C349) : Colors.white24, shape: BoxShape.circle)),
+              const SizedBox(width: 12),
+              Text(isNext ? 'CONFIRMED • NEXT VISIT' : 'UPCOMING', style: TextStyle(color: isNext ? const Color(0xFFE9C349) : Colors.white24, fontSize: 10, letterSpacing: 1, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text(a.serviceType, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w300)),
+          const SizedBox(height: 40),
+          Row(
+            children: [
+              _buildDetailColumn('DATE', dateStr),
+              const SizedBox(width: 48),
+              _buildDetailColumn('TIME', timeStr),
+            ],
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white12), padding: const EdgeInsets.symmetric(vertical: 20), shape: const StadiumBorder()),
+              child: const Text('MANAGE BOOKING'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailColumn(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(color: Colors.white.withOpacity(0.2), fontSize: 10, letterSpacing: 1)),
+        const SizedBox(height: 8),
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      ],
+    );
+  }
+
+  Widget _buildPastVisitTile(Appointment a) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: const Color(0xFF1C1B1B).withOpacity(0.5), borderRadius: BorderRadius.circular(24)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(a.serviceType, style: const TextStyle(color: Colors.white, fontSize: 18)),
+              const SizedBox(height: 4),
+              Text('${DateFormat('MMM dd').format(a.dateTime)} • Completed', style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 12)),
+            ],
+          ),
+          const Icon(Icons.check_circle, color: Color(0xFFE9C349), size: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Text(message, style: TextStyle(color: Colors.white.withOpacity(0.2), fontSize: 14)),
+      ),
+    );
+  }
+}

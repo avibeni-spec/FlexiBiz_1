@@ -1,0 +1,261 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../logic/providers/database_providers.dart';
+import '../../logic/providers/loading_provider.dart'; // Import the global loading provider
+
+class BusinessProfileScreen extends ConsumerStatefulWidget {
+  const BusinessProfileScreen({super.key});
+
+  @override
+  ConsumerState<BusinessProfileScreen> createState() => _BusinessProfileScreenState();
+}
+
+class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
+  final _businessNameController = TextEditingController();
+  final _categoryController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+
+  @override
+  void dispose() {
+    _businessNameController.dispose();
+    _categoryController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveProfile() async {
+    // 1. Activate Global Loading
+    ref.read(globalLoadingProvider.notifier).state = true;
+
+    try {
+      final databaseService = ref.read(databaseProvider);
+      // In a real app, use the actual business ID from Auth
+      const businessId = 'default-business-id'; 
+
+      await databaseService.updateBusinessProfile(businessId, {
+        'name': _businessNameController.text.trim(),
+        'category': _categoryController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'address': _addressController.text.trim(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('PROFILE SYNCHRONIZED SUCCESSFULLY'),
+            backgroundColor: Color(0xFFE9C349),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('SYNCHRONIZATION ERROR: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      // 2. Deactivate Global Loading
+      if (mounted) {
+        ref.read(globalLoadingProvider.notifier).state = false;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // In a real app, use the actual business ID from Auth
+    const businessId = 'default-business-id';
+    final businessAsync = ref.watch(businessStreamProvider(businessId));
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF131313),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        centerTitle: true,
+        title: const Text(
+          'BUSINESS PROFILE',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            fontWeight: FontWeight.w300,
+            letterSpacing: 4.0,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _saveProfile,
+            child: const Text(
+              'SAVE',
+              style: TextStyle(
+                color: Color(0xFFE9C349), 
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: businessAsync.when(
+        data: (data) {
+          // Sync controllers with data if they are empty (initial load)
+          if (_businessNameController.text.isEmpty && data['name'] != null) {
+            _businessNameController.text = data['name'];
+            _categoryController.text = data['category'] ?? '';
+            _phoneController.text = data['phone'] ?? '';
+            _addressController.text = data['address'] ?? '';
+          }
+          
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileHeader(data['imageUrl']),
+                const SizedBox(height: 40),
+                _buildSectionHeader('GENERAL INFORMATION'),
+                const SizedBox(height: 16),
+                _buildTextField(label: 'BUSINESS NAME', controller: _businessNameController, icon: Icons.storefront),
+                const SizedBox(height: 20),
+                _buildTextField(label: 'CATEGORY', controller: _categoryController, icon: Icons.category_outlined),
+                const SizedBox(height: 40),
+                _buildSectionHeader('CONTACT DETAILS'),
+                const SizedBox(height: 16),
+                _buildTextField(label: 'PHONE NUMBER', controller: _phoneController, icon: Icons.phone_outlined, keyboardType: TextInputType.phone),
+                const SizedBox(height: 20),
+                _buildTextField(label: 'ADDRESS', controller: _addressController, icon: Icons.location_on_outlined),
+                const SizedBox(height: 40),
+                _buildSectionHeader('OPERATING HOURS'),
+                const SizedBox(height: 16),
+                _buildOperatingHours(data['operatingHours']),
+                const SizedBox(height: 40),
+              ],
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE9C349))),
+        error: (err, stack) => Center(child: Text('Error loading profile: $err', style: const TextStyle(color: Colors.red))),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(String? imageUrl) {
+    return Center(
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFE9C349), width: 2),
+            ),
+            child: CircleAvatar(
+              radius: 60,
+              backgroundImage: NetworkImage(imageUrl ?? 'https://images.unsplash.com/photo-1628178304620-749e7a2b979a?auto=format&fit=crop&w=300&q=80'),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(color: Color(0xFFE9C349), shape: BoxShape.circle),
+              child: const Icon(Icons.camera_alt, color: Colors.black, size: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        color: Colors.white.withOpacity(0.4),
+        fontSize: 10,
+        letterSpacing: 2,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+    TextInputType? keyboardType,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1B),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w300),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.white.withOpacity(0.2), fontSize: 12),
+          prefixIcon: Icon(icon, color: const Color(0xFFE9C349).withOpacity(0.7), size: 20),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOperatingHours(Map<String, dynamic>? hours) {
+    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1B),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Column(
+        children: days.map((day) => _buildDayRow(day, hours?[day])).toList(),
+      ),
+    );
+  }
+
+  Widget _buildDayRow(String day, dynamic dayData) {
+    final bool isOpen = dayData != null && dayData['isOpen'] == true;
+    final String timeRange = isOpen ? "${dayData['open']} - ${dayData['close']}" : 'CLOSED';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(day, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w300)),
+          if (isOpen)
+            Row(
+              children: [
+                Text(timeRange, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12, letterSpacing: 0.5)),
+                const SizedBox(width: 12),
+                const Icon(Icons.chevron_right, color: Colors.white24, size: 16),
+              ],
+            )
+          else
+            Text('CLOSED', style: TextStyle(color: Colors.redAccent.withOpacity(0.8), fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+        ],
+      ),
+    );
+  }
+}

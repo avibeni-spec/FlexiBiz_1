@@ -1,0 +1,41 @@
+# FlexiBiz - Product Requirements Document (PRD)
+
+## 1. Project Overview
+**FlexiBiz** is a premium management platform designed for small businesses in the beauty and hair salon industry. It aims to provide a seamless, elegant, and professional experience for business owners to manage their clients, appointments, and business settings.
+
+## 2. Target Audience
+Business owners and managers in the beauty, spa, and hair salon sectors who value a modern, clean, and high-end aesthetic.
+
+## 3. Core Features (Manager App)
+### 3.1 Dashboard (4 Main Screens)
+*   **Home:** Overview of today's appointments, key metrics (total revenue/appointments), and quick actions.
+*   **Clients:** Searchable list of all clients with quick contact options.
+*   **Calendar (Appointments):** Daily/Weekly view of scheduled services with status indicators.
+*   **Settings:** Business profile, operating hours, and app preferences.
+
+### 3.2 Sub-Screens & Workflows
+*   **Client Management:** Add new client, edit existing client details, view appointment history and notes.
+*   **Appointment Management:** Schedule new appointments, edit existing ones, update status (Booked, Completed, Canceled).
+*   **Business Profile:** Manage business name, category, and owner details.
+
+## 4. Technical Architecture
+*   **Frontend:** Flutter (Modular, clean code).
+*   **Backend:** Firebase Firestore (Real-time data synchronization).
+*   **State Management:** Riverpod or Provider (Recommended for scalability and testability).
+*   **Data Models:**
+    *   **Client:** `id`, `fullName`, `phone`, `notes`, `appointmentIds[]`.
+    *   **Appointment:** `id`, `dateTime`, `serviceType`, `clientId`, `status`.
+    *   **Business:** `id`, `name`, `type`, `operatingHours`, `ownerDetails`.
+
+## 5. Design Principles (Luxurious Dark Mode)
+*   **Theme:** Deep dark backgrounds (e.g., #121212 or deep navy).
+*   **Typography:** Thin, elegant white text.
+*   **Components:** Rounded white buttons, clean cards, minimal clutter.
+*   **Navigation:** Intuitive bottom navigation bar.
+
+## 6. Implementation Roadmap
+1.  **Phase 1:** Design System & Theme setup.
+2.  **Phase 2:** Core UI Screens (Home, Clients, Calendar, Settings).
+3.  **Phase 3:** CRUD Operations (Clients & Appointments) with Firestore integration.
+4.  **Phase 4:** Advanced Features (Notifications, Analytics).
+5.  **Phase 5:** Optimization & Store Readiness.

@@ -1,0 +1,50 @@
+# FlexiBiz - Firebase Setup Guide
+
+Setting up Firebase correctly is essential for the real-time synchronization and cloud storage features of FlexiBiz. Follow these steps to get your project live.
+
+## 1. Create a Firebase Project
+1.  Go to the [Firebase Console](https://console.firebase.google.com/).
+2.  Click **"Add project"** and give it a name (e.g., `FlexiBiz-Production`).
+3.  Decide whether to enable Google Analytics (recommended for tracking business growth) and click **"Create project"**.
+
+## 2. Register Your Apps
+You need to register both the Android and iOS versions of your Flutter app within the same Firebase project.
+
+### For Android:
+1.  In the Firebase Console, click the **Android icon**.
+2.  Enter your **Android package name** (found in `android/app/build.gradle` as `applicationId`, e.g., `com.example.flexibiz`).
+3.  Download the `google-services.json` file.
+4.  Place it in the `android/app/` directory of your Flutter project.
+
+### For iOS:
+1.  Click **"Add app"** and select the **iOS icon**.
+2.  Enter your **iOS Bundle ID** (found in Xcode under General > Identity or in `ios/Runner.xcodeproj`).
+3.  Download the `GoogleService-Info.plist` file.
+4.  Move it into the `ios/Runner/` directory using Xcode (do not just drag it into the folder in Finder).
+
+## 3. Enable Core Services
+FlexiBiz relies on several Firebase services. You must enable them manually in the console:
+
+### A. Firestore Database (Critical)
+1.  Select **Firestore Database** in the left menu.
+2.  Click **"Create database"**.
+3.  Choose **"Start in test mode"** for now (you'll deploy our secure rules later).
+4.  Select a location close to your business (e.g., `europe-west3` for Israel).
+
+### B. Authentication
+1.  Select **Authentication** and click **"Get Started"**.
+2.  Enable the **Email/Password** and **Phone** sign-in providers in the "Sign-in method" tab.
+
+### C. Cloud Messaging (Push Notifications)
+1.  Select **Cloud Messaging**.
+2.  For iOS, you'll need to upload your **APNs Authentication Key** (from the Apple Developer Portal) in the Project Settings > Cloud Messaging tab.
+
+## 4. Deploy Security Rules
+1.  Go back to the **Firestore Database** section.
+2.  Click the **"Rules"** tab.
+3.  Paste the **Firestore Security Rules** I provided earlier (available on your canvas) and click **"Publish"**.
+
+## 5. Initialize in Flutter
+Ensure your `main.dart` is calling `Firebase.initializeApp()` as shown in the **Final Release Build Configuration**.
+
+**Your FlexiBiz platform is now officially connected to the cloud!**
