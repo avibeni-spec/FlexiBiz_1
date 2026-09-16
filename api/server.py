@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from data.models import CoatingRun, SessionLocal, save_run
 from engineering.process_model import design_process
-from simulation.chem_model import environments_db, metals_db, simulate_coating
+from simulation.chem_model import coatings_db, environments_db, metals_db, simulate_coating
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,8 @@ def design_coating_process(request: CoatingProcessRequest):
 
     if request.metal_type.lower() not in metals_db:
         raise HTTPException(status_code=400, detail=f"Invalid metal_type: {request.metal_type}")
+    if request.coating_type.lower() not in coatings_db:
+        raise HTTPException(status_code=400, detail=f"Invalid coating_type: {request.coating_type}")
     if request.environment.lower() not in environments_db:
         raise HTTPException(status_code=400, detail=f"Invalid environment: {request.environment}")
     if request.target_lifetime_years <= 0:

@@ -18,6 +18,14 @@ environments_db = {
     "lab": {"salt_factor": 0.3, "temp_factor": 0.8}
 }
 
+coatings_db = {
+    "anodizing": {"adhesion": 0.7, "corrosion_resistance": 0.8, "thermal_resistance": 0.6},
+    "peo": {"adhesion": 0.85, "corrosion_resistance": 0.9, "thermal_resistance": 0.95},
+    "electroplating": {"adhesion": 0.6, "corrosion_resistance": 0.5, "thermal_resistance": 0.4},
+    "sol_gel": {"adhesion": 0.5, "corrosion_resistance": 0.7, "thermal_resistance": 0.8},
+    "sam": {"adhesion": 0.4, "corrosion_resistance": 0.6, "thermal_resistance": 0.5}
+}
+
 
 def simulate_chemical_process(metal_name, exposure_time=1.0, environment_factor=1.0):
     logger.info(
@@ -61,6 +69,10 @@ def simulate_coating(metal_type: str, coating_type: str, environment: str) -> di
     if not env_data:
         raise ValueError("Environment not supported")
 
+    coating_data = coatings_db.get(coating_type.lower())
+    if not coating_data:
+        raise ValueError("Coating type not supported")
+
     salt_factor = env_data["salt_factor"]
     temp_factor = env_data["temp_factor"]
 
@@ -71,6 +83,10 @@ def simulate_coating(metal_type: str, coating_type: str, environment: str) -> di
     binding_energy *= temp_factor
     corrosion_index *= salt_factor
     thermal_stability *= (temp_factor + salt_factor) / 2
+
+    binding_energy *= coating_data["adhesion"]
+    corrosion_index *= (1 - coating_data["corrosion_resistance"])
+    thermal_stability *= coating_data["thermal_resistance"]
 
     result = {
         "binding_energy": binding_energy,
