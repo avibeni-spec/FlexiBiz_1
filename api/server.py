@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from data.models import CoatingRun, SessionLocal, save_run
 from engineering.process_model import design_process
-from simulation.chem_model import simulate_coating
+from simulation.chem_model import environments_db, metals_db, simulate_coating
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +24,18 @@ class CoatingProcessRequest(BaseModel):
 def design_coating_process(request: CoatingProcessRequest):
     logger.info("Received request: POST /design-coating-process %s", request.model_dump())
 
-    try:
-        sim_results = simulate_coating(
-            request.metal_type, request.coating_type, request.environment
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    if request.metal_type.lower() not in metals_db:
+        raise HTTPException(status_code=400, detail=f"Invalid metal_type: {request.metal_type}")
+    if request.environment.lower() not in environments_db:
+        raise HTTPException(status_code=400, detail=f"Invalid environment: {request.environment}")
+    if request.target_lifetime_years <= 0:
+        raise HTTPException(status_code=400, detail="target_lifetime_years must be greater than 0")
+    if request.max_cost <= 0:
+        raise HTTPException(status_code=400, detail="max_cost must be greater than 0")
+
+    sim_results = simulate_coating(
+        request.metal_type, request.coating_type, request.environment
+    )
 
     process_results = design_process(
         sim_results, request.target_lifetime_years, request.max_cost
