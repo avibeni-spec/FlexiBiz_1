@@ -26,3 +26,19 @@ def simulate_chemical_process(metal_name, exposure_time=1.0, environment_factor=
         "corrosion_level": round(corrosion_level, 4),
         "degradation": round(degradation, 4),
     }
+
+
+def simulate_coating(metal_type: str, coating_type: str, environment: str) -> dict:
+    data = metals_db.get(metal_type.lower())
+    if not data:
+        raise ValueError("Metal type not supported")
+
+    binding_energy = (data["hardness"] * 0.6) + (data["corrosion_resistance"] * 0.4)
+    corrosion_index = (data["reactivity"] * 0.7) - (data["corrosion_resistance"] * 0.3)
+    thermal_stability = (data["hardness"] + data["corrosion_resistance"]) / 2
+
+    return {
+        "binding_energy": binding_energy,
+        "corrosion_index": corrosion_index,
+        "thermal_stability": thermal_stability
+    }
