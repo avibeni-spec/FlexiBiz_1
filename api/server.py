@@ -63,6 +63,16 @@ def get_available_metals():
     return result
 
 
+@app.get("/available-environments")
+def get_available_environments():
+    logger.info("Received request: GET /available-environments")
+
+    result = list(environments_db.keys())
+
+    logger.info("Sending response: GET /available-environments %s", result)
+    return result
+
+
 @app.get("/coating-runs")
 def get_coating_runs():
     logger.info("Received request: GET /coating-runs")
