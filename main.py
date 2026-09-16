@@ -1,11 +1,10 @@
-from engineering.process_model import run_process_model
-from simulation.chem_model import metals_db
+import uvicorn
+
+from api.server import app
 
 
 def main():
-    for metal_name in metals_db:
-        result = run_process_model(metal_name)
-        print(f"{metal_name}: {result}")
+    uvicorn.run(app, host="127.0.0.1", port=8000)
 
 
 if __name__ == "__main__":
