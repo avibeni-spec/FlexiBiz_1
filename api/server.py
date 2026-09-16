@@ -53,6 +53,16 @@ def design_coating_process(request: CoatingProcessRequest):
     return process_results
 
 
+@app.get("/available-metals")
+def get_available_metals():
+    logger.info("Received request: GET /available-metals")
+
+    result = list(metals_db.keys())
+
+    logger.info("Sending response: GET /available-metals %s", result)
+    return result
+
+
 @app.get("/coating-runs")
 def get_coating_runs():
     logger.info("Received request: GET /coating-runs")
