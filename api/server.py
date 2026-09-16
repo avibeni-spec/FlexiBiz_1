@@ -1,9 +1,13 @@
+import logging
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from data.models import CoatingRun, SessionLocal, save_run
 from engineering.process_model import design_process
 from simulation.chem_model import simulate_coating
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -18,6 +22,8 @@ class CoatingProcessRequest(BaseModel):
 
 @app.post("/design-coating-process")
 def design_coating_process(request: CoatingProcessRequest):
+    logger.info("Received request: POST /design-coating-process %s", request.model_dump())
+
     try:
         sim_results = simulate_coating(
             request.metal_type, request.coating_type, request.environment
@@ -37,15 +43,18 @@ def design_coating_process(request: CoatingProcessRequest):
         **process_results,
     })
 
+    logger.info("Sending response: POST /design-coating-process %s", process_results)
     return process_results
 
 
 @app.get("/coating-runs")
 def get_coating_runs():
+    logger.info("Received request: GET /coating-runs")
+
     session = SessionLocal()
     try:
         runs = session.query(CoatingRun).all()
-        return [
+        result = [
             {
                 "id": run.id,
                 "metal_type": run.metal_type,
@@ -63,6 +72,9 @@ def get_coating_runs():
         ]
     finally:
         session.close()
+
+    logger.info("Sending response: GET /coating-runs (%d runs)", len(result))
+    return result
 
 
 def start_server(host="127.0.0.1", port=8000):

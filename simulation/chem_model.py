@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 metals_db = {
     "aluminum": {"reactivity": 0.7, "corrosion_resistance": 0.5, "hardness": 0.3},
     "steel": {"reactivity": 0.4, "corrosion_resistance": 0.3, "hardness": 0.8},
@@ -9,6 +13,11 @@ metals_db = {
 
 
 def simulate_chemical_process(metal_name, exposure_time=1.0, environment_factor=1.0):
+    logger.info(
+        "Starting simulate_chemical_process: metal_name=%s exposure_time=%s environment_factor=%s",
+        metal_name, exposure_time, environment_factor,
+    )
+
     metal = metals_db.get(metal_name)
     if metal is None:
         raise ValueError(f"Unknown metal: {metal_name}")
@@ -21,14 +30,22 @@ def simulate_chemical_process(metal_name, exposure_time=1.0, environment_factor=
     )
     degradation = corrosion_level * (1 - metal["hardness"] * 0.3)
 
-    return {
+    result = {
         "metal": metal_name,
         "corrosion_level": round(corrosion_level, 4),
         "degradation": round(degradation, 4),
     }
 
+    logger.info("Finished simulate_chemical_process: result=%s", result)
+    return result
+
 
 def simulate_coating(metal_type: str, coating_type: str, environment: str) -> dict:
+    logger.info(
+        "Starting simulate_coating: metal_type=%s coating_type=%s environment=%s",
+        metal_type, coating_type, environment,
+    )
+
     data = metals_db.get(metal_type.lower())
     if not data:
         raise ValueError("Metal type not supported")
@@ -37,8 +54,11 @@ def simulate_coating(metal_type: str, coating_type: str, environment: str) -> di
     corrosion_index = (data["reactivity"] * 0.7) - (data["corrosion_resistance"] * 0.3)
     thermal_stability = (data["hardness"] + data["corrosion_resistance"]) / 2
 
-    return {
+    result = {
         "binding_energy": binding_energy,
         "corrosion_index": corrosion_index,
         "thermal_stability": thermal_stability
     }
+
+    logger.info("Finished simulate_coating: result=%s", result)
+    return result
