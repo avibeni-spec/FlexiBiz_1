@@ -8,5 +8,21 @@ metals_db = {
 }
 
 
-def simulate_chemical_process():
-    pass
+def simulate_chemical_process(metal_name, exposure_time=1.0, environment_factor=1.0):
+    metal = metals_db.get(metal_name)
+    if metal is None:
+        raise ValueError(f"Unknown metal: {metal_name}")
+
+    corrosion_level = (
+        metal["reactivity"]
+        * (1 - metal["corrosion_resistance"])
+        * exposure_time
+        * environment_factor
+    )
+    degradation = corrosion_level * (1 - metal["hardness"] * 0.3)
+
+    return {
+        "metal": metal_name,
+        "corrosion_level": round(corrosion_level, 4),
+        "degradation": round(degradation, 4),
+    }
