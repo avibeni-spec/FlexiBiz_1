@@ -15,3 +15,17 @@ def run_process_model(metal_name, exposure_time=1.0, environment_factor=1.0, max
         "degradation": simulation["degradation"],
         "suitable_for_process": suitable,
     }
+
+
+def design_process(sim_results: dict, target_lifetime_years: float, max_cost: float) -> dict:
+    layer_thickness = sim_results["binding_energy"] * 10
+    process_time = sim_results["thermal_stability"] * 5
+    material_usage = layer_thickness * 0.8
+    estimated_cost = material_usage * 3
+
+    return {
+        "layer_thickness": layer_thickness,
+        "process_time": process_time,
+        "material_usage": material_usage,
+        "estimated_cost": estimated_cost
+    }
