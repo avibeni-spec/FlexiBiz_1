@@ -11,6 +11,13 @@ metals_db = {
     "copper": {"reactivity": 0.6, "corrosion_resistance": 0.4, "hardness": 0.5}
 }
 
+environments_db = {
+    "marine": {"salt_factor": 1.2, "temp_factor": 0.9},
+    "industrial": {"salt_factor": 1.0, "temp_factor": 1.1},
+    "desert": {"salt_factor": 0.6, "temp_factor": 1.3},
+    "lab": {"salt_factor": 0.3, "temp_factor": 0.8}
+}
+
 
 def simulate_chemical_process(metal_name, exposure_time=1.0, environment_factor=1.0):
     logger.info(
@@ -50,9 +57,20 @@ def simulate_coating(metal_type: str, coating_type: str, environment: str) -> di
     if not data:
         raise ValueError("Metal type not supported")
 
+    env_data = environments_db.get(environment.lower())
+    if not env_data:
+        raise ValueError("Environment not supported")
+
+    salt_factor = env_data["salt_factor"]
+    temp_factor = env_data["temp_factor"]
+
     binding_energy = (data["hardness"] * 0.6) + (data["corrosion_resistance"] * 0.4)
     corrosion_index = (data["reactivity"] * 0.7) - (data["corrosion_resistance"] * 0.3)
     thermal_stability = (data["hardness"] + data["corrosion_resistance"]) / 2
+
+    binding_energy *= temp_factor
+    corrosion_index *= salt_factor
+    thermal_stability *= (temp_factor + salt_factor) / 2
 
     result = {
         "binding_energy": binding_energy,
